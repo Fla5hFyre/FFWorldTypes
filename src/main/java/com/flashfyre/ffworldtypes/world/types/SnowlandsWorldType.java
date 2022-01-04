@@ -1,14 +1,19 @@
 package com.flashfyre.ffworldtypes.world.types;
 
+import java.util.function.Supplier;
+
 import com.flashfyre.ffworldtypes.FFWT;
+import com.flashfyre.ffworldtypes.world.FFWTNoiseGeneratorSettings;
+import com.flashfyre.ffworldtypes.world.biomebuilder.SnowlandsBiomeBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.mojang.datafixers.util.Pair;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Climate;
 import net.minecraft.world.level.biome.MultiNoiseBiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
@@ -28,18 +33,15 @@ public class SnowlandsWorldType extends ForgeWorldPreset {
 	}
 	
 	public static final MultiNoiseBiomeSource.Preset SNOWLANDS = new MultiNoiseBiomeSource.Preset(FFWT.id("snowlands"), (biomeReg) -> {
-        return new Climate.ParameterList<>(ImmutableList.of(
-        		Pair.of(Climate.parameters(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-        			return biomeReg.getOrThrow(Biomes.SNOWY_PLAINS);
-        		}), Pair.of(Climate.parameters(0.0F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-        			return biomeReg.getOrThrow(Biomes.ICE_SPIKES);
-        		}), Pair.of(Climate.parameters(0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-        	return biomeReg.getOrThrow(Biomes.GROVE);
-        		}), Pair.of(Climate.parameters(0.0F, 0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-        			return biomeReg.getOrThrow(Biomes.SNOWY_TAIGA);
-        		}), Pair.of(Climate.parameters(-0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F), () -> {
-        			return biomeReg.getOrThrow(Biomes.FROZEN_PEAKS);
-        		})));
+		Builder<Pair<Climate.ParameterPoint, Supplier<Biome>>> builder = ImmutableList.builder();
+        (new SnowlandsBiomeBuilder()).addBiomes((pair) -> {
+           builder.add(pair.mapSecond((biome) -> {
+              return () -> {
+                 return biomeReg.getOrThrow(biome);
+              };
+           }));
+        });
+        return new Climate.ParameterList<>(builder.build());
 	});
 
 	@Override

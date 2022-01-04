@@ -1,4 +1,4 @@
-package com.flashfyre.ffworldtypes.world.types;
+package com.flashfyre.ffworldtypes.world;
 
 import net.minecraft.data.BuiltinRegistries;
 import net.minecraft.data.worldgen.SurfaceRuleData;
@@ -49,55 +49,61 @@ public class FFWTNoiseGeneratorSettings {
 	}
 	
 	public static TerrainShaper createSnowlandsTerrainShaper() {		
-		CubicSpline<TerrainShaper.Point> valleyOffsetSpline = createValleyOffsetSpline();
-		CubicSpline<TerrainShaper.Point> lowOffsetSpline = createLowOffsetSpline();
-		CubicSpline<TerrainShaper.Point> peakOffsetSpline = createPeakOffsetSpline();
 		
-		CubicSpline<TerrainShaper.Point> offsetSpline = CubicSpline.builder(TerrainShaper.Coordinate.WEIRDNESS)
-				.addPoint(-1.0F, 0.3F, 0.0F)
-				.addPoint(-0.5F, peakOffsetSpline, 0.0F) // peaks
-				.addPoint(-0.1F, lowOffsetSpline, 0.0F)
-				.addPoint(0.0F, valleyOffsetSpline, 0.0F) // rivers
-				.addPoint(0.1F, lowOffsetSpline, 0.0F)
-				.addPoint(0.5F, peakOffsetSpline, 0.0F) // peaks
-				.addPoint(1.0F, 0.3F, 0.0F)
+		CubicSpline<TerrainShaper.Point> offsetSpline = CubicSpline.builder(TerrainShaper.Coordinate.CONTINENTS)
+				.addPoint(-1.0F, 0.6F, 0.0F) // far inland
+				.addPoint(-0.45F, 0.0F, 0.0F) // coastline
+				.addPoint(-0.4F, -0.1F, 0.0F) // coastline
+				.addPoint(-0.25F, -0.3F, 0.0F) // deepest ocean
+				.addPoint(-0.15F, -0.3F, 0.0F) // deepest ocean
+				.addPoint(0.0F, -0.1F, 0.0F) // coastline
+				.addPoint(0.05F, createBigIslandOffset(0.4F, 0.3F), 0.0F) // coastline
+				.addPoint(0.5F, createBigIslandOffset(0.6F, 0.4F), 0.0F) // middle inland
+				.addPoint(1.0F, createBigIslandOffset(0.8F, 0.5F), 0.0F) // far inland
 				.build();
 		CubicSpline<TerrainShaper.Point> factorSpline = CubicSpline.builder(TerrainShaper.Coordinate.EROSION)
-				.addPoint(-1.0F, 3.0F, 0.0F)
+				.addPoint(-1.0F, 6.0F, 0.0F)
 				.addPoint(1.0F, 7.0F, 0.0F)
 				.build();
-		CubicSpline<TerrainShaper.Point> jaggednessSpline = CubicSpline.builder(TerrainShaper.Coordinate.WEIRDNESS)
-				.addPoint(-0.7F, 0.0F, 0.0F)
-				.addPoint(-0.5F, 1.0F, 0.0F) // peaks
-				.addPoint(-0.3F, 0.0F, 0.0F)
-				.addPoint(0.3F, 0.0F, 0.0F)
-				.addPoint(0.5F, 1.0F, 0.0F) // peaks
-				.addPoint(0.7F, 0.0F, 0.0F)
-				.build();
+		CubicSpline<TerrainShaper.Point> jaggednessSpline = createJaggednessSpline();
 		
         return new TerrainShaper(offsetSpline, factorSpline, jaggednessSpline);
     }
 	
-	public static CubicSpline<TerrainShaper.Point> createValleyOffsetSpline() {
-		return CubicSpline.builder(TerrainShaper.Coordinate.CONTINENTS)
-				.addPoint(-0.25F, -0.2F, 0.0F)
-				.addPoint(0.0F, 0.2F, 0.0F)
-				.addPoint(0.25F, -0.2F, 0.0F)
+	public static CubicSpline<TerrainShaper.Point> createBigIslandOffset(float peak, float postPeak) {
+		return CubicSpline.builder(TerrainShaper.Coordinate.WEIRDNESS)
+				.addPoint(-0.9F, postPeak, 0.0F)
+				.addPoint(-0.6F, peak, 0.0F)
+				.addPoint(-0.15F, 0.0F, 0.0F)
+				.addPoint(-0.1F, -0.1F, 0.0F) // edge of valley
+				.addPoint(0.0F, -0.15F, 0.0F) // valley
+				.addPoint(0.1F, -0.1F, 0.0F) // edge of valley
+				.addPoint(0.15F, 0.0F, 0.0F)
+				.addPoint(0.6F, peak, 0.0F)
+				.addPoint(0.9F, postPeak, 0.0F)
 				.build();
+		
 	}
 	
-	public static CubicSpline<TerrainShaper.Point> createLowOffsetSpline() {
+	public static CubicSpline<TerrainShaper.Point> createJaggednessSpline() {
 		return CubicSpline.builder(TerrainShaper.Coordinate.CONTINENTS)
-				.addPoint(-0.2F, 0.0F, 0.0F)
-				.addPoint(0.0F, 0.3F, 0.0F)
-				.addPoint(0.2F, 0.0F, 0.0F)
+				.addPoint(-0.8F, 1.0F, 0.0F)
+				.addPoint(-0.6F, 0.0F, 0.0F)
+				.addPoint(0.1F, 0.0F, 0.0F)
+				.addPoint(0.2F, createBigIslandJaggedness(1.0F), 0.0F)
 				.build();
+		
 	}
 	
-	public static CubicSpline<TerrainShaper.Point> createPeakOffsetSpline() {
-		return CubicSpline.builder(TerrainShaper.Coordinate.CONTINENTS)
-				.addPoint(-1.0F, 0.6F, 0.0F)
-				.addPoint(1.0F, 0.9F, 0.0F)
+	public static CubicSpline<TerrainShaper.Point> createBigIslandJaggedness(float jaggedness) {
+		return CubicSpline.builder(TerrainShaper.Coordinate.WEIRDNESS)
+				.addPoint(-0.7F, 0.0F, 0.0F)
+				.addPoint(-0.6F, jaggedness, 0.0F)
+				.addPoint(-0.5F, 0.0F, 0.0F)
+				.addPoint(0.5F, 0.0F, 0.0F)
+				.addPoint(0.6F, jaggedness, 0.0F)
+				.addPoint(0.7F, 0.0F, 0.0F)
 				.build();
+		
 	}
 }
